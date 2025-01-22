@@ -47,7 +47,7 @@ public abstract class SerialPortActivity extends Activity {
                     if (mInputStream == null) return;
                     size = mInputStream.read(buffer);
                     if (size > 0) {
-                        onDataReceived(buffer, size);
+                        onDataReceived(buffer, size); // send to TCP
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -75,6 +75,8 @@ public abstract class SerialPortActivity extends Activity {
         mApplication = (Application) getApplication();
         try {
             mSerialPort = mApplication.getSerialPort();
+
+            // вот этот стрим надо прокинуть для передачи в tcp
             mOutputStream = mSerialPort.getOutputStream();
             mInputStream = mSerialPort.getInputStream();
 

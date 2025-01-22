@@ -1,8 +1,9 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
 
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    namespace "android.serialport.sample"
     defaultConfig {
         applicationId "android.serialport.sample"
         minSdkVersion 15

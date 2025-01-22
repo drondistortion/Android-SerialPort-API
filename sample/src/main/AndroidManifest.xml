@@ -20,6 +20,7 @@
         <activity android:name="ConsoleActivity"></activity>
         <activity android:name="LoopbackActivity"></activity>
         <activity android:name="Sending01010101Activity"></activity>
+        <activity android:name="ForwardToTcpActivity"></activity>
     </application>
 
 </manifest>

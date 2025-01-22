@@ -75,5 +75,12 @@ public class MainMenu extends Activity {
                 MainMenu.this.finish();
             }
         });
+
+        final Button buttonForward = (Button) findViewById(R.id.ButtonForward);
+        buttonForward.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                startActivity(new Intent(MainMenu.this, ForwardToTcpActivity.class));
+            }
+        });
     }
 }
