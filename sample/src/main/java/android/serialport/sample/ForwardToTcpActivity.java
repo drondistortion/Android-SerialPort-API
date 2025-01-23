@@ -29,7 +29,6 @@ import java.util.Arrays;
 public class ForwardToTcpActivity extends SerialPortActivity {
 
     private static final String TAG = "FTTA";
-    SendingThread mSendingThread;
     private OutputStream mTcpOut = null;
     private InputStream mTcpIn = null;
     private SocketServer socketServer;
@@ -43,12 +42,6 @@ public class ForwardToTcpActivity extends SerialPortActivity {
         new Thread(socketServer).start();
 
         Log.d(TAG, "tcp server started");
-
-        if (mSerialPort != null) {
-            mSendingThread = new SendingThread();
-            mSendingThread.start();
-            Log.d(TAG, "serail thread started");
-        }
     }
 
     @Override
@@ -75,30 +68,6 @@ public class ForwardToTcpActivity extends SerialPortActivity {
             e.printStackTrace();
         }
     }
-    private class SendingThread extends Thread {
-        @Override
-        public void run() {
-            Log.i(TAG,"starting sending thread");
-            while (!isInterrupted()) {
-                try {
-                    Log.d(TAG, "mOutputStream is " + mOutputStream);
-                    Log.d(TAG, "mTcpIn is " + mTcpIn);
-                    if (mOutputStream != null && mTcpIn != null) {
-                        if (mTcpIn.available() > 0) {
-                            Log.i(TAG,"got data on tcp");
-                            mOutputStream.write(mTcpIn.read());
-                        }
-                    } else {
-                        return;
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return;
-                }
-            }
-        }
-    }
-
     private class SocketServer implements Runnable {
         private static final String TAG = "SocketServer";
         private static final int PORT = 19999;

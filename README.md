@@ -8,9 +8,9 @@ TCP port is set to 19999 in ForwardToTcpActivity.java
 
 ## How to use:
 
-1) on app main screen pushd Setup to setup uart port path and baudrate
+1) on app main screen push Setup to setup uart port path and baudrate
 2) go back to main screen and push "Forward to TCP"
-3) in terminal emulater on a computer in the same netword enter and hit return: 
+3) (testing) terminal emulator on a computer in the same network enter this line and hit return: 
 
 ```
 nc X.X.X.X 19999
