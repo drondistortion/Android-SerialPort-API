@@ -19,8 +19,10 @@ package android.serialport.sample;
 import android.os.Bundle;
 import android.util.Log;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -28,13 +30,11 @@ import java.util.Arrays;
 
 public class ForwardToTcpActivity extends SerialPortActivity {
 
+    private static final String TAG = "FTTA";
     SendingThread mSendingThread;
-    //ReceivingThread mReceivingThread;
-    private ServerSocket mTcpServerSocket = null;
-    private Socket mTcpSocket = null;
-    private int mPORT = 19999;
     private OutputStream mTcpOut = null;
     private InputStream mTcpIn = null;
+    private SocketServer socketServer;
 
     // open TCP server socket here, create sending thread, receiving thread.
     @Override
@@ -42,8 +42,11 @@ public class ForwardToTcpActivity extends SerialPortActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.forwarduart);
 
-        Thread tcpThread = new TcpThread();
-        tcpThread.start();
+
+        socketServer = new SocketServer();
+        new Thread(socketServer).start();
+
+        Log.d(TAG, "tcp server started");
 
         //mBuffer = new byte[1024];
         //Arrays.fill(mBuffer, (byte) 0x55);
@@ -54,6 +57,14 @@ public class ForwardToTcpActivity extends SerialPortActivity {
             mReceivingThread = new ReceivingThread();
             mReceivingThread.start();
              */
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (socketServer != null) {
+            socketServer.stopServer();
         }
     }
 
@@ -72,12 +83,12 @@ public class ForwardToTcpActivity extends SerialPortActivity {
     private class SendingThread extends Thread {
         @Override
         public void run() {
-            Log.i("","starting sending thread");
+            Log.i(TAG,"starting sending thread");
             while (!isInterrupted()) {
                 try {
                     if (mOutputStream != null && mTcpIn != null) {
                         if (mTcpIn.available() > 0) {
-                            Log.i("","got data on tcp");
+                            Log.i(TAG,"got data on tcp");
                             mOutputStream.write(mTcpIn.read());
                         }
                     } else {
@@ -91,38 +102,64 @@ public class ForwardToTcpActivity extends SerialPortActivity {
         }
     }
 
-    private class TcpThread extends Thread {
+    private class SocketServer implements Runnable {
+        private static final String TAG = "SocketServer";
+        private static final int PORT = 19999;
+        private boolean isRunning = true;
+        private ServerSocket serverSocket;
+
         @Override
         public void run() {
-            Log.i("", "starting Tcp thread");
             try {
-                mTcpServerSocket = new ServerSocket(mPORT);
-                mTcpSocket = mTcpServerSocket.accept();
-                mTcpIn = mTcpSocket.getInputStream();
-                mTcpOut = mTcpSocket.getOutputStream();
-            } catch (IOException e) {
-                e.printStackTrace();
+                serverSocket = new ServerSocket(PORT);
+                Log.i(TAG, "Server started on port " + PORT);
+
+                while (isRunning) {
+                    Socket socket = serverSocket.accept();
+                    Log.i(TAG, "New client connected: " + socket.getInetAddress());
+
+                    // Handle client connection in a new thread
+                    new Thread(() -> handleClient(socket)).start();
+                }
+
+            } catch (Exception e) {
+                Log.e(TAG, "Server error: " + e.getMessage());
             }
         }
-    }
 
-    /*
-    private class ReceivingThread extends Thread {
-        @Override
-        public void run() {
-            while (!isInterrupted()) {
+        private void handleClient(Socket socket) {
+            try {
+                BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(socket.getInputStream())
+                );
+
+                mTcpIn = socket.getInputStream();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    Log.i(TAG, "Received: " + line);
+
+                }
+
+            } catch (Exception e) {
+                Log.e(TAG, "Error handling client: " + e.getMessage());
+            } finally {
                 try {
-                    if (mInputStream != null) {
-                        // wirte to TCP here...
-                    } else {
-                        return;
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return;
+                    socket.close();
+                } catch (Exception e) {
+                    Log.e(TAG, "Error closing socket: " + e.getMessage());
                 }
             }
         }
+
+        public void stopServer() {
+            isRunning = false;
+            try {
+                if (serverSocket != null) {
+                    serverSocket.close();
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error stopping server: " + e.getMessage());
+            }
+        }
     }
-     */
 }
