@@ -20,10 +20,12 @@ import android.os.Bundle;
 import android.util.Log;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
@@ -53,6 +55,7 @@ public class ForwardToTcpActivity extends SerialPortActivity {
         if (mSerialPort != null) {
             mSendingThread = new SendingThread();
             mSendingThread.start();
+            Log.d(TAG, "serail thread started");
             /*
             mReceivingThread = new ReceivingThread();
             mReceivingThread.start();
@@ -71,10 +74,14 @@ public class ForwardToTcpActivity extends SerialPortActivity {
     // create socket here to send over TCP
     @Override
     protected void onDataReceived(byte[] buffer, int size) {
+        Log.d(TAG, "received data...");
         // forward data to TCP here...
         try {
             if (mTcpOut != null) {
-                mTcpOut.write(buffer);
+                Log.d(TAG, "sending data Serial to TCP");
+                mTcpOut.write(buffer, 0, size);
+                mTcpOut.flush();
+                Log.d(TAG, Arrays.toString(buffer));
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -86,6 +93,8 @@ public class ForwardToTcpActivity extends SerialPortActivity {
             Log.i(TAG,"starting sending thread");
             while (!isInterrupted()) {
                 try {
+                    Log.d(TAG, "mOutputStream is " + mOutputStream);
+                    Log.d(TAG, "mTcpIn is " + mTcpIn);
                     if (mOutputStream != null && mTcpIn != null) {
                         if (mTcpIn.available() > 0) {
                             Log.i(TAG,"got data on tcp");
@@ -129,16 +138,44 @@ public class ForwardToTcpActivity extends SerialPortActivity {
 
         private void handleClient(Socket socket) {
             try {
+                /*
                 BufferedReader reader = new BufferedReader(
                         new InputStreamReader(socket.getInputStream())
                 );
 
+                BufferedWriter writer = new BufferedWriter(
+                        new OutputStreamWriter(mOutputStream)
+                );
+
+                char[] buffer=new char[1024];
+                int len;
+                while ( ( len=reader.read(buffer) ) >= 0 )
+                {
+                    writer.write(buffer, 0, len);
+                    Log.d(TAG, Arrays.toString(buffer));
+                }
+                 */
+
                 mTcpIn = socket.getInputStream();
+                mTcpOut = socket.getOutputStream();
+                Log.d(TAG, "mTcpIn is " + mTcpIn);
+                //mOutputStream.write(mTcpIn.read());
+                while (mTcpIn.available() >= 0) {
+                    int b = mTcpIn.read();
+                    if (b >= 0)
+                        mOutputStream.write((char)b);
+                    else {
+                        break;
+                    }
+                    Log.d(TAG, "read byte " + b);
+                }
+                /*
                 String line;
                 while ((line = reader.readLine()) != null) {
                     Log.i(TAG, "Received: " + line);
 
                 }
+                 */
 
             } catch (Exception e) {
                 Log.e(TAG, "Error handling client: " + e.getMessage());
