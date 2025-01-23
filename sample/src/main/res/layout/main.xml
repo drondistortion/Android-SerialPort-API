@@ -22,6 +22,13 @@
         android:text="Console" />
 
     <Button
+        android:id="@+id/ButtonForward"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:text="Forward to TCP" />
+
+    <Button
         android:id="@+id/ButtonLoopback"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
@@ -48,13 +55,5 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:text="Quit" />
-
-
-    <Button
-        android:id="@+id/ButtonForward"
-        android:layout_width="fill_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:text="Forward to TCP" />
 
 </LinearLayout>

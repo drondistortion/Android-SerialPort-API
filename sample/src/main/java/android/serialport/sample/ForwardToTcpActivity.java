@@ -17,42 +17,69 @@
 package android.serialport.sample;
 
 import android.os.Bundle;
+import android.util.Log;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.Arrays;
-import android.util.Log;
 
 public class ForwardToTcpActivity extends SerialPortActivity {
 
     SendingThread mSendingThread;
-    byte[] mBuffer;
+    //ReceivingThread mReceivingThread;
+    private ServerSocket mTcpServerSocket = null;
+    private Socket mTcpSocket = null;
+    private int mPORT = 19999;
+    private OutputStream mTcpOut = null;
+    private InputStream mTcpIn = null;
 
+    // open TCP server socket here, create sending thread, receiving thread.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d("", "Created!");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.forwarduart);
-        mBuffer = new byte[1024];
-        Arrays.fill(mBuffer, (byte) 0x55);
+
+        Thread tcpThread = new TcpThread();
+        tcpThread.start();
+
+        //mBuffer = new byte[1024];
+        //Arrays.fill(mBuffer, (byte) 0x55);
         if (mSerialPort != null) {
             mSendingThread = new SendingThread();
             mSendingThread.start();
+            /*
+            mReceivingThread = new ReceivingThread();
+            mReceivingThread.start();
+             */
         }
     }
 
+    // create socket here to send over TCP
     @Override
     protected void onDataReceived(byte[] buffer, int size) {
-        // ignore incoming data
+        // forward data to TCP here...
+        try {
+            if (mTcpOut != null) {
+                mTcpOut.write(buffer);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
-
     private class SendingThread extends Thread {
         @Override
         public void run() {
-           Log.d("", "I'm here");
+            Log.i("","starting sending thread");
             while (!isInterrupted()) {
                 try {
-                    if (mOutputStream != null) {
-                        mOutputStream.write(mBuffer);
+                    if (mOutputStream != null && mTcpIn != null) {
+                        if (mTcpIn.available() > 0) {
+                            Log.i("","got data on tcp");
+                            mOutputStream.write(mTcpIn.read());
+                        }
                     } else {
                         return;
                     }
@@ -63,4 +90,39 @@ public class ForwardToTcpActivity extends SerialPortActivity {
             }
         }
     }
+
+    private class TcpThread extends Thread {
+        @Override
+        public void run() {
+            Log.i("", "starting Tcp thread");
+            try {
+                mTcpServerSocket = new ServerSocket(mPORT);
+                mTcpSocket = mTcpServerSocket.accept();
+                mTcpIn = mTcpSocket.getInputStream();
+                mTcpOut = mTcpSocket.getOutputStream();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /*
+    private class ReceivingThread extends Thread {
+        @Override
+        public void run() {
+            while (!isInterrupted()) {
+                try {
+                    if (mInputStream != null) {
+                        // wirte to TCP here...
+                    } else {
+                        return;
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return;
+                }
+            }
+        }
+    }
+     */
 }

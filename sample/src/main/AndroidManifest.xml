@@ -2,6 +2,8 @@
 <manifest package="android.serialport.sample"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <application
         android:name=".Application"
         android:allowBackup="true"
@@ -21,6 +23,8 @@
         <activity android:name="LoopbackActivity"></activity>
         <activity android:name="Sending01010101Activity"></activity>
         <activity android:name="ForwardToTcpActivity"></activity>
+
+
     </application>
 
 </manifest>
