@@ -19,13 +19,9 @@ package android.serialport.sample;
 import android.os.Bundle;
 import android.util.Log;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
@@ -38,28 +34,20 @@ public class ForwardToTcpActivity extends SerialPortActivity {
     private InputStream mTcpIn = null;
     private SocketServer socketServer;
 
-    // open TCP server socket here, create sending thread, receiving thread.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.forwarduart);
-
 
         socketServer = new SocketServer();
         new Thread(socketServer).start();
 
         Log.d(TAG, "tcp server started");
 
-        //mBuffer = new byte[1024];
-        //Arrays.fill(mBuffer, (byte) 0x55);
         if (mSerialPort != null) {
             mSendingThread = new SendingThread();
             mSendingThread.start();
             Log.d(TAG, "serail thread started");
-            /*
-            mReceivingThread = new ReceivingThread();
-            mReceivingThread.start();
-             */
         }
     }
 
@@ -138,24 +126,6 @@ public class ForwardToTcpActivity extends SerialPortActivity {
 
         private void handleClient(Socket socket) {
             try {
-                /*
-                BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(socket.getInputStream())
-                );
-
-                BufferedWriter writer = new BufferedWriter(
-                        new OutputStreamWriter(mOutputStream)
-                );
-
-                char[] buffer=new char[1024];
-                int len;
-                while ( ( len=reader.read(buffer) ) >= 0 )
-                {
-                    writer.write(buffer, 0, len);
-                    Log.d(TAG, Arrays.toString(buffer));
-                }
-                 */
-
                 mTcpIn = socket.getInputStream();
                 mTcpOut = socket.getOutputStream();
                 Log.d(TAG, "mTcpIn is " + mTcpIn);
@@ -169,14 +139,6 @@ public class ForwardToTcpActivity extends SerialPortActivity {
                     }
                     Log.d(TAG, "read byte " + b);
                 }
-                /*
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    Log.i(TAG, "Received: " + line);
-
-                }
-                 */
-
             } catch (Exception e) {
                 Log.e(TAG, "Error handling client: " + e.getMessage());
             } finally {
