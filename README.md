@@ -8,18 +8,20 @@ TCP port is set to 19999 in ForwardToTcpActivity.java
 
 ## How to use:
 
-1) on app main screen push Setup to setup uart port path and baudrate
+1) push SETUP on app main screen and setup UART's port path and baudrate
 2) go back to main screen and push "Forward to TCP"
-3) (testing) terminal emulator on a computer in the same network enter this line and hit return: 
+3) (testing) open terminal emulator on a computer in the same network, enter this line and hit return: 
 
 ```
 nc X.X.X.X 19999
 ```
 
+where X.X.X.X is the ip address of the device running the app
+
 4) typed in characters will appear in logcat and on selected uart when you press return
 
 
-__original readme__
+_original readme_:
 
 # Android-SerialPort-API
 [Fork](https://code.google.com/archive/p/android-serialport-api/)自Google开源的Android串口通信Demo，修改成Android Studio项目 
